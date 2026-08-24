@@ -43,6 +43,14 @@ final class Main extends Plugin {
 	private ?AuthService $auth = null;
 
 	public function onEnable(): void {
+		// Ensure the data folder exists BEFORE loading config: Config cannot
+		// write the default config.yml into a missing directory, so a deleted
+		// folder/file would never regenerate.
+		$dataFolder = rtrim($this->getDataFolder(), '/');
+		if (!is_dir($dataFolder)) {
+			mkdir($dataFolder, 0775, true);
+		}
+
 		$cfg = AuthConfig::load($this->getDataFolder());
 
 		// pmmpthread workers cannot autoload: pre-load every class a task's
@@ -56,11 +64,6 @@ final class Main extends Plugin {
 		if (!$cfg->enabled()) {
 			$this->getLogger()->info('Auth is disabled in config.yml; staying passive.');
 			return;
-		}
-
-		$dataFolder = rtrim($this->getDataFolder(), '/');
-		if (!is_dir($dataFolder)) {
-			mkdir($dataFolder, 0775, true);
 		}
 
 		// ---- ports & shared services -----------------------------------

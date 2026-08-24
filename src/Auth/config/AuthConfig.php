@@ -65,14 +65,71 @@ final class AuthConfig {
 			'sqlite-file' => 'accounts.sqlite',
 		],
 		'messages' => [
+			'prefix' => '&8[&6Auth&8] &r',
+			'join-new' => '&eWelcome! Register with &f/register <password> <password>',
+			'join-registered' => '&eWelcome back! Log in with &f/login <password>',
+			'login-auto' => '&aYou were logged in automatically (trusted IP).',
+			'login-ok' => '&aYou are now logged in. Welcome, &f{player}&a!',
+			'login-timeout-kick' => '&cYou were kicked for not logging in within {seconds} seconds.',
+			'login-kick-attempts' => '&cToo many failed login attempts.',
+			'login-usage' => '&eUsage: &f/login <password>',
+			'login-notregistered' => '&cYou do not have an account. Use &f/register&c first.',
+			'login-wrong' => '&cWrong password! Attempts left: &f{attempts}',
+			'rate-limited' => '&cToo many attempts. Try again in &f{seconds}&c seconds.',
+			'register-usage' => '&eUsage: &f/register <password> <confirmPassword>',
+			'register-exists' => '&cThis account already exists. Use &f/login&c.',
+			'register-mismatch' => '&cThe passwords do not match.',
+			'register-short' => '&cYour password must be at least &f{min}&c characters long.',
+			'register-ok' => '&aAccount created! You are now registered and logged in.',
+			'changepw-usage' => '&eUsage: &f/changepassword <oldPassword> <newPassword>',
+			'changepw-short' => '&cYour new password must be at least &f{min}&c characters long.',
+			'changepw-wrongold' => '&cThe old password is incorrect.',
+			'changepw-ok' => '&aYour password has been changed.',
+			'captcha-text' => '&ePlease type &f/captcha {code} &eto prove you are human.',
+			'captcha-math' => '&eSolve: &f{code} &7- use &f/captcha <answer>',
+			'captcha-usage' => '&eUsage: &f/captcha <code>',
+			'captcha-not-required' => '&cNo captcha is required right now.',
+			'captcha-expired' => '&cThe captcha expired - a new one was sent above.',
+			'captcha-bad' => '&cWrong captcha, try again.',
+			'twofa-disabled-feature' => '&cTwo-factor authentication is disabled on this server.',
+			'twofa-prompt' => '&eEnter your two-factor code: &f/2fa <code>',
+			'twofa-login-backup-hint' => '&7Tip: you can also use one of your backup codes.',
+			'twofa-bad' => '&cInvalid two-factor code.',
+			'twofa-backup-used' => '&aBackup code accepted.',
+			'twofa-enable-header' => '&2=== Two-factor enrollment ===',
+			'twofa-secret-line' => '&7Secret: &f{secret}',
+			'twofa-uri-line' => '&7Scan this URI with your authenticator app:',
+			'twofa-uri-value' => '&f{uri}',
+			'twofa-manual-hint' => '&7Or enter the secret manually, then confirm:',
+			'twofa-confirm-usage' => '&eConfirm with: &f/2fa confirm <code>',
+			'twofa-confirm-ok' => '&aTwo-factor authentication enabled.',
+			'twofa-already-enabled' => '&cTwo-factor authentication is already enabled.',
+			'twofa-backup-code' => '&6Backup code: &f{code} &7(single use - store it safely)',
+			'twofa-not-enrolled' => '&cTwo-factor authentication is not enabled on this account.',
+			'twofa-disable-usage' => '&eUsage: &f/2fa disable <password>',
+			'twofa-disable-wrongpw' => '&cWrong password - 2FA was NOT disabled.',
+			'twofa-disable-ok' => '&aTwo-factor authentication disabled.',
 			'twofa-usage' => '&eUsage: &f/2fa <code>&e, &f/2fa enable&e, &f/2fa confirm <code>&e or &f/2fa disable <password>',
+			'admin-unregistered' => '&aUnregistered account of &f{player}&a.',
+			'admin-resetpw' => '&aReset the password of &f{player}&a.',
+			'admin-codes-header' => '&2New backup codes for &f{player}&2:',
 		],
 	];
 
 	private function __construct(private readonly Config $config) {}
 
 	public static function load(string $dataFolder): self {
-		return new self(new Config(rtrim($dataFolder, '/') . '/config.yml', self::DEFAULTS));
+		$path = rtrim($dataFolder, '/') . '/config.yml';
+		$config = new Config($path, self::DEFAULTS);
+		if (!is_file($path)) {
+			// The kernel's Config never writes on construction (save() bails
+			// while !modified), so a deleted config.yml would stay deleted.
+			// Materialize the defaults once so admins have a file to edit;
+			// later loads merge their edits over these defaults.
+			$config->setAll(self::DEFAULTS);
+			$config->save();
+		}
+		return new self($config);
 	}
 
 	public function raw(): Config {

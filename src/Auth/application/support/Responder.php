@@ -33,6 +33,14 @@ final class Responder {
 		$to->sendMessage($this->colorize($text));
 	}
 
+	/** Send a raw (already-written) message, bypassing the message-key lookup. */
+	public function raw(object|null $to, string $message): void {
+		if ($to === null || $message === '') {
+			return;
+		}
+		$to->sendMessage($this->colorize($message));
+	}
+
 	public function colorize(string $message): string {
 		return TextFormat::colorize($this->cfg->msg('prefix')) . TextFormat::colorize($message);
 	}

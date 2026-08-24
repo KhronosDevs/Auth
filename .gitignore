@@ -1,0 +1,4 @@
+# Runtime artifacts (test runs create these in the plugin dir)
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
