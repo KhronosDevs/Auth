@@ -1,0 +1,10 @@
+name: Auth
+version: 1.0.0
+author: Khronos
+description: Registration, login, 2FA (TOTP), captcha and brute-force protection
+main: Auth\Main
+api: 2.0.0
+permissions:
+  auth.admin:
+    description: Manage accounts (force-unregister, password reset, regenerate backup codes)
+    default: op
