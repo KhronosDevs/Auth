@@ -30,8 +30,12 @@ use pocketmine\api\event\PlayerQuitEvent;
  * authenticated players pay one array lookup per event and nothing else.
  */
 final class RestrictionListener {
-	/** Commands an unauthenticated player may always use. */
-	private const ALLOWED_COMMANDS = ['register', 'login', 'captcha'];
+	/** Commands an unauthenticated player may always use.
+	 * 2fa MUST stay listed: a password-logged-in player reaches the
+	 * TwoFactor stage while still restricted, and the
+	 * PlayerCommandPreprocessEvent gate below would otherwise block the
+	 * one command that stage exists for. */
+	private const ALLOWED_COMMANDS = ['register', 'login', 'captcha', '2fa'];
 
 	public function __construct(
 		private readonly AuthService $auth,

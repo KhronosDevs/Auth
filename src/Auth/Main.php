@@ -41,6 +41,8 @@ use pocketmine\api\plugin\Plugin;
  */
 final class Main extends Plugin {
 	private ?AuthService $auth = null;
+	/** Handle for the kernel visibility filter (unregistered on disable). */
+	private ?VisibilityFilter $visibilityFilter = null;
 
 	public function onEnable(): void {
 		// Ensure the data folder exists BEFORE loading config: Config cannot
@@ -110,7 +112,11 @@ final class Main extends Plugin {
 			// are hidden from other unauthenticated players. The kernel
 			// handles RemoveEntity/AddEntity transitions automatically when
 			// auth state flips; the filter itself is O(1) and stable.
-			$this->setEntityVisibilityFilter(new VisibilityFilter($sessions));
+			// registerEntityVisibilityFilter (not the legacy single-slot
+			// setter) so multiple plugins can stack filters, and the handle
+			// lets onDisable() remove ours again.
+			$this->visibilityFilter = new VisibilityFilter($sessions);
+			$this->registerEntityVisibilityFilter($this->visibilityFilter);
 		}
 
 		// ---- commands ------------------------------------------------------
@@ -134,6 +140,13 @@ final class Main extends Plugin {
 	}
 
 	public function onDisable(): void {
+		// Remove the visibility filter first so a disabled plugin cannot
+		// keep enforcing stale auth state (or keep $sessions alive) in the
+		// kernel's filter list.
+		if ($this->visibilityFilter !== null) {
+			$this->unregisterEntityVisibilityFilter($this->visibilityFilter);
+			$this->visibilityFilter = null;
+		}
 		// Pending worker futures are tracked by the kernel; the serial DB
 		// queue simply drains whatever is already in flight. SQLite WAL mode
 		// keeps the store consistent even if a job never lands.

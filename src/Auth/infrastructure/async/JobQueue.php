@@ -20,13 +20,16 @@ use pocketmine\port\driven\ThreadingPort;
  * ordering guarantees hold without locks. Implements the application's
  * PasswordEncoder port; hashing runs on pool workers.
  *
- * COMPLETION DELIVERY: we deliberately do NOT use PluginFuture::then().
- * The kernel loses track of futures submitted from inside a completion
- * callback (Kernel::drainPluginFutures replaces pendingPluginFutures with
- * its $remaining list after iterating - API gap 2c), so then()-callbacks of
- * CHAINED jobs would never fire. Instead every future we submit is polled
- * by our own per-tick sweep (drain), which invokes the handlers directly.
- * One empty-array check per tick when idle; O(pending) otherwise.
+ * COMPLETION DELIVERY: handlers are invoked by our own per-tick sweep
+ * (drain), which polls every future we submitted and calls the handlers
+ * directly. HISTORICAL NOTE: this design predates the kernel's
+ * swap-then-drain fix - Kernel::drainPluginFutures used to lose futures
+ * submitted from inside a then() callback (API gap 2c), which would have
+ * silently dropped CHAINED jobs. That kernel bug is fixed now, so then()
+ * would be safe; the sweep is kept because it also gives explicit control
+ * over handler ordering (strict FIFO with the SQLite in-flight flag) and
+ * works identically on any kernel version. One empty-array check per tick
+ * when idle; O(pending) otherwise.
  */
 final class JobQueue implements PasswordEncoder {
 	/**

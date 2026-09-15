@@ -2,7 +2,20 @@
 declare(strict_types=1);
 
 $ROOT = dirname(__DIR__, 3);
-$SRC = $ROOT . '/plugins/Auth/src';
+// The Auth plugin folder may be checked out under any name (Auth, auth-dev,
+// ...); locate it by its src/Auth/Main.php marker instead of assuming.
+$AUTH_DIR = null;
+foreach (glob($ROOT . '/plugins/*', GLOB_ONLYDIR) ?: [] as $__d) {
+    if (is_file($__d . '/src/Auth/Main.php')) {
+        $AUTH_DIR = $__d;
+        break;
+    }
+}
+if ($AUTH_DIR === null) {
+    fwrite(STDERR, "Cannot locate the Auth plugin source under {$ROOT}/plugins\n");
+    exit(1);
+}
+$SRC = $AUTH_DIR . '/src';
 require "$SRC/Auth/domain/twofactor/Base32.php";
 use Auth\domain\twofactor\Base32;
 use Auth\domain\twofactor\Totp;

@@ -2,12 +2,20 @@
 declare(strict_types=1);
 
 $ROOT = dirname(__DIR__, 3);
+// Locate the plugin folder by marker (the checkout dir name may vary).
+$AUTH_SRC = null;
+foreach (glob($ROOT . '/plugins/*', GLOB_ONLYDIR) ?: [] as $__d) {
+    if (is_file($__d . '/src/Auth/Main.php')) {
+        $AUTH_SRC = $__d . '/src';
+        break;
+    }
+}
 require $ROOT . '/autoload.php';
  
-require $ROOT . '/plugins/Auth/src/Auth/application/session/AuthSession.php';
-require $ROOT . '/plugins/Auth/src/Auth/application/session/SessionManager.php';
-require $ROOT . '/plugins/Auth/src/Auth/domain/AuthStage.php';
-require $ROOT . '/plugins/Auth/src/Auth/infrastructure/player/VisibilityFilter.php';
+require $AUTH_SRC . '/Auth/application/session/AuthSession.php';
+require $AUTH_SRC . '/Auth/application/session/SessionManager.php';
+require $AUTH_SRC . '/Auth/domain/AuthStage.php';
+require $AUTH_SRC . '/Auth/infrastructure/player/VisibilityFilter.php';
 
 use pocketmine\core\ecs\EntityRef;
 use pocketmine\port\driven\PlayerRef;

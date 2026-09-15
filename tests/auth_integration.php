@@ -21,7 +21,17 @@ $kernel = \pocketmine\bootstrap();
 // Load the plugin exactly like production (PluginManager parses plugin.yml,
 // registers commands/permissions, calls onEnable).
 $pm = $kernel->getPluginManager();
-$plugin = $pm->loadPlugin($ROOT . '/plugins/Auth');
+$plugin = $pm->loadPlugin(
+    // The plugin folder may be checked out under any name; find it by marker.
+    (function (string $root): string {
+        foreach (glob($root . '/plugins/*', GLOB_ONLYDIR) ?: [] as $d) {
+            if (is_file($d . '/plugin.yml') && is_file($d . '/src/Auth/Main.php')) {
+                return $d;
+            }
+        }
+        throw new RuntimeException('Cannot locate the Auth plugin under ' . $root . '/plugins');
+    })($ROOT)
+);
 check('Auth plugin loads + enables', $plugin !== null && $pm->isPluginEnabled('Auth'));
 
 // Simulate a player joining: PlayerJoinService fires PlayerLoginEvent then

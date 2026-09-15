@@ -9,7 +9,7 @@ use pocketmine\port\driven\PlayerRef;
 
 /**
  * Per-viewer entity visibility via the kernel's entity visibility filter
- * (NetworkSessionService::setEntityVisibilityFilter).
+ * (registered with Plugin::registerEntityVisibilityFilter()).
  *
  * Rule: an unauthenticated viewer cannot see other unauthenticated players.
  * Everyone else (authenticated players, mobs, items) is always visible.
